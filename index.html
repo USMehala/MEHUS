@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mehala US — UI/UX & Graphic Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="us.css">
+
+<style>
+/* ── Purple Gradient Palette Override ── */
+:root {
+  --lavender: #E9D5FF;
+  --soft-purple: #C084FC;
+  --purple: #A855F7;
+  --violet: #7C3AED;
+  --deep-purple: #6D28D9;
+  --dark-purple: #4C1D95;
+  --midnight: #140021;
+  --black-purple: #090014;
+  --white: #ffffff;
+  --bg: #05010d;
+  --bg-2: #0b0418;
+  --surface: rgba(32, 8, 60, 0.65);
+  --surface-2: rgba(168, 85, 247, 0.08);
+  --border: rgba(192, 132, 252, 0.18);
+  --border-glow: rgba(168, 85, 247, 0.45);
+  --text: var(--lavender);
+  --text-muted: rgba(233, 213, 255, 0.6);
+  --accent: var(--violet);
+  --accent-2: var(--purple);
+  --glow: rgba(168, 85, 247, 0.35);
+  --inf-start: #E9D5FF;
+  --inf-mid: #A855F7;
+  --inf-end: #4C1D95;
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor">
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <svg style="width:100px;height:50px;filter:drop-shadow(0 0 16px rgba(168,85,247,0.8))" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="loaderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#E9D5FF"/>
+        <stop offset="50%"  stop-color="#A855F7"/>
+        <stop offset="100%" stop-color="#4C1D95"/>
+      </linearGradient>
+    </defs>
+    <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+      fill="none" stroke="url(#loaderGrad)" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="260" stroke-dashoffset="260"
+      style="animation:draw-infinity 1.6s ease forwards"/>
+  </svg>
+  <div class="loader-text" style="font-size:1rem;letter-spacing:4px;margin-top:-8px">MEHALA US</div>
+  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
+</div>
+
+<!-- Hidden SVG defs for reusable infinity gradient -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="infinityGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#E9D5FF"/>
+      <stop offset="50%"  stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#4C1D95"/>
+    </linearGradient>
+    <linearGradient id="infinityGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#E9D5FF" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0.5"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Floating bg infinity symbols -->
+<div class="bg-infinity" style="width:500px;height:250px;top:10%;left:-80px;animation-delay:0s">
+  <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="M100,50 C100,22 122,5 145,5 C168,5 190,22 190,50 C190,78 168,95 145,95 C122,95 100,78 100,50 C100,22 78,5 55,5 C32,5 10,22 10,50 C10,78 32,95 55,95 C78,95 100,78 100,50Z"
+      fill="none" stroke="url(#infinityGrad2)" stroke-width="2"/>
+  </svg>
+</div>
+<div class="bg-infinity" style="width:360px;height:180px;bottom:15%;right:-60px;animation-delay:-4s;animation-duration:13s">
+  <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+    <path d="M100,50 C100,22 122,5 145,5 C168,5 190,22 190,50 C190,78 168,95 145,95 C122,95 100,78 100,50 C100,22 78,5 55,5 C32,5 10,22 10,50 C10,78 32,95 55,95 C78,95 100,78 100,50Z"
+      fill="none" stroke="url(#infinityGrad2)" stroke-width="2"/>
+  </svg>
+</div>
+
+<!-- CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">Mehala US</div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#education">Education</a></li>
+    <li><a href="#contact" class="nav-cta">Contact</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="#about" onclick="closeMobileNav()">About</a>
+  <a href="#skills" onclick="closeMobileNav()">Skills</a>
+  <a href="#projects" onclick="closeMobileNav()">Projects</a>
+  <a href="#education" onclick="closeMobileNav()">Education</a>
+  <a href="#contact" onclick="closeMobileNav()">Contact</a>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-tag"><span></span> Available for opportunities</div>
+      <h1 class="hero-name">
+        <span class="line1">Mehala</span>
+        <span class="line2">US</span>
+      </h1>
+      <p class="hero-role">UI/UX Designer &amp; Graphic Designer</p>
+
+      <!-- INFINITY SYMBOL -->
+      <div class="infinity-wrap">
+        <svg class="infinity-svg" viewBox="0 0 120 60">
+          <defs>
+            <linearGradient id="infHeroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#E9D5FF"/>
+              <stop offset="20%"  stop-color="#C084FC"/>
+              <stop offset="45%"  stop-color="#A855F7"/>
+              <stop offset="70%"  stop-color="#7C3AED"/>
+              <stop offset="100%" stop-color="#4C1D95"/>
+            </linearGradient>
+          </defs>
+          <path
+            class="infinity-path"
+            d="M30,30
+               C30,10 55,10 60,30
+               C65,50 90,50 90,30
+               C90,10 65,10 60,30
+               C55,50 30,50 30,30Z"
+          />
+        </svg>
+      </div>
+
+      <p class="hero-desc">Crafting user-centered digital experiences that blend aesthetic precision with intuitive interaction. Transforming ideas into visually immersive, high-impact designs.</p>
+      <div class="hero-btns">
+        <a href="#projects" class="btn-primary"><span>View My Work</span></a>
+        <a href="mailto:usmehala11@gmail.com" class="btn-ghost">Get in Touch</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="avatar-ring">
+          <div class="avatar-inner">
+            <span class="avatar-initials">M</span>
+          </div>
+        </div>
+        <div class="hero-card-name">Mehala US</div>
+        <div class="hero-card-title">UI/UX &amp; Graphic Designer</div>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-num">7.8</div>
+            <div class="stat-label">CGPA</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">1+</div>
+            <div class="stat-label">Projects</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">10+</div>
+            <div class="stat-label">Tools</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section id="about">
+  <div class="section-wrap">
+    <div class="section-label reveal">About Me</div>
+    <div class="infinity-divider reveal">
+      <div class="inf-line"></div>
+      <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="aboutInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#E9D5FF"/>
+            <stop offset="50%"  stop-color="#A855F7"/>
+            <stop offset="100%" stop-color="#4C1D95"/>
+          </linearGradient>
+        </defs>
+        <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+          fill="none" stroke="url(#aboutInfGrad)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="inf-line"></div>
+    </div>
+
+    <div class="about-left reveal">
+      <h2 class="section-title">Designing <em>experiences</em> that inspire</h2>
+      <p class="about-text">I'm a passionate UI/UX and Graphic Designer with a B.E. in Computer Science & Engineering from University College of Engineering, Villupuram. I specialize in creating user-centered digital solutions that are both visually stunning and deeply functional.</p>
+      <p class="about-text">My approach merges design thinking with technical capability — from wireframes to prototypes to high-fidelity visuals — always with the user at the heart of every decision.</p>
+      <div class="about-links">
+        <a href="mailto:usmehala11@gmail.com" class="social-link">✉ Email</a>
+        <a href="tel:+916380461064" class="social-link">+91 6380461064</a>
+        <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="social-link">in LinkedIn</a>
+        <a href="https://www.behance.net/mehalaus17" class="social-link">Be Behance</a>
+        <a href="https://dribbble.com/usmehala17" class="social-link">Dribbble</a>
+      </div>
+    </div>
+
+    <div class="about-right reveal">
+      <div class="info-card">
+        <div class="info-icon"><i class="fas fa-user-graduate"></i></div>
+        <h4>Education</h4>
+        <p>B.E. Computer Science & Engineering</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon"><i class="fas fa-location-dot"></i></div>
+        <h4>Location</h4>
+        <p>Tamil Nadu, India</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon"><i class="fas fa-pen-nib"></i></div>
+        <h4>Speciality</h4>
+        <p>UI/UX & Graphic Design</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SKILLS ═══ -->
+<section id="skills">
+  <div class="section-wrap">
+    <div class="section-label reveal">Expertise</div>
+
+    <div class="infinity-divider reveal">
+      <div class="inf-line"></div>
+      <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="skillsInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#E9D5FF"/>
+            <stop offset="50%"  stop-color="#A855F7"/>
+            <stop offset="100%" stop-color="#4C1D95"/>
+          </linearGradient>
+        </defs>
+        <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+          fill="none" stroke="url(#skillsInfGrad)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="inf-line"></div>
+    </div>
+
+    <h2 class="section-title reveal">Skills &amp; <em>Tools</em></h2>
+
+    <div class="skills-grid">
+
+      <!-- Graphic Design -->
+      <div class="skill-category reveal">
+        <div class="skill-cat-icon"><i class="fas fa-pen-ruler"></i></div>
+        <div class="skill-cat-title">Graphic Design</div>
+        <div class="skill-tags">
+          <span class="skill-tag tag-blue">Branding</span>
+          <span class="skill-tag tag-blue">Typography</span>
+          <span class="skill-tag tag-blue">Color Theory</span>
+          <span class="skill-tag tag-blue">Logo Design</span>
+          <span class="skill-tag tag-blue">Visual Design</span>
+        </div>
+      </div>
+
+      <!-- UI UX -->
+      <div class="skill-category reveal">
+        <div class="skill-cat-icon"><i class="fas fa-laptop-code"></i></div>
+        <div class="skill-cat-title">UI/UX Design</div>
+        <div class="skill-tags">
+          <span class="skill-tag tag-purple">Wireframing</span>
+          <span class="skill-tag tag-purple">Prototyping</span>
+          <span class="skill-tag tag-purple">User Research</span>
+          <span class="skill-tag tag-purple">Usability Testing</span>
+        </div>
+      </div>
+
+      <!-- Technical Skills -->
+      <div class="skill-category reveal">
+        <div class="skill-cat-icon"><i class="fas fa-code"></i></div>
+        <div class="skill-cat-title">Technical Skills</div>
+        <div class="skill-tags">
+          <span class="skill-tag tag-pink">HTML</span>
+          <span class="skill-tag tag-pink">CSS</span>
+          <span class="skill-tag tag-pink">JavaScript</span>
+          <span class="skill-tag tag-pink">Figma</span>
+          <span class="skill-tag tag-pink">Adobe PS</span>
+          <span class="skill-tag tag-pink">Illustrator</span>
+          <span class="skill-tag tag-pink">Adobe XD</span>
+          <span class="skill-tag tag-pink">CorelDraw</span>
+          <span class="skill-tag tag-pink">Indesign</span>
+          <span class="skill-tag tag-pink">Canva</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROJECTS ═══ -->
+<section id="projects">
+  <div class="section-wrap">
+
+    <div class="section-label reveal">Works</div>
+
+    <div class="infinity-divider reveal">
+      <div class="inf-line"></div>
+      <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="projInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#E9D5FF"/>
+            <stop offset="50%"  stop-color="#A855F7"/>
+            <stop offset="100%" stop-color="#4C1D95"/>
+          </linearGradient>
+        </defs>
+        <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+          fill="none" stroke="url(#projInfGrad)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="inf-line"></div>
+    </div>
+
+    <h2 class="section-title reveal">Featured <em>Project</em></h2>
+
+    <!-- PROJECT CARD 1 -->
+    <div class="project-card reveal">
+
+      <!-- LEFT -->
+      <div class="project-visual">
+        <div class="project-glow"></div>
+        <div class="project-mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dots">
+              <span class="mockup-dot d1"></span>
+              <span class="mockup-dot d2"></span>
+              <span class="mockup-dot d3"></span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-line accent" style="width:70%"></div>
+            <div class="mockup-line" style="width:90%"></div>
+            <div class="mockup-line" style="width:60%"></div>
+            <div class="mockup-box"></div>
+            <div class="mockup-line" style="width:80%"></div>
+            <div class="mockup-line accent" style="width:50%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="project-info">
+        <div class="project-num">Project 01 — Mobile App</div>
+        <h3 class="project-title">Solar Panel Monitoring &amp; Management</h3>
+        <p class="project-desc">
+          A comprehensive platform to monitor, manage, and install solar solutions
+          across industrial, commercial, residential, agricultural, and transportation
+          sectors. Users can track solar power performance, order products,
+          schedule installations, manage subscriptions, and access support.
+        </p>
+        <div class="project-tools">
+          <span class="tool-chip">Figma</span>
+        </div>
+        <div class="project-links">
+          <a href="https://www.figma.com/proto/cR4AXucIqRNm5vbLvdx3RG/PUMO-PROJECT?node-id=1267-886&t=MdbK4j2yeo4XNjKQ-1"
+            target="_blank" class="proj-link proj-link-primary">
+            <i class="fas fa-play-circle"></i> Live Prototype
+          </a>
+          <a href="https://www.figma.com/proto/hOuIyD6lZaRkycCg24cqzU/CaseStudy?node-id=0-1&t=MdbK4j2yeo4XNjKQ-1"
+            target="_blank" class="proj-link proj-link-ghost">
+            <i class="fas fa-file-alt"></i> Case Study
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <br><br>
+
+    <!-- PROJECT CARD 2 -->
+    <div class="project-card reveal">
+
+      <!-- LEFT -->
+      <div class="project-visual">
+        <div class="project-glow"></div>
+        <div class="project-mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dots">
+              <span class="mockup-dot d1"></span>
+              <span class="mockup-dot d2"></span>
+              <span class="mockup-dot d3"></span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-line accent" style="width:70%"></div>
+            <div class="mockup-line" style="width:90%"></div>
+            <div class="mockup-line" style="width:60%"></div>
+            <div class="mockup-box"></div>
+            <div class="mockup-line" style="width:80%"></div>
+            <div class="mockup-line accent" style="width:50%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="project-info">
+        <div class="project-num">Project 02 — Landing Page</div>
+        <h3 class="project-title">PawCare Veterinary Hospital &amp; Management</h3>
+        <p class="project-desc">
+          A trusted veterinary healthcare platform dedicated to providing complete care for pets across residential and community sectors. Pet owners can book appointments, monitor pet health records, schedule vaccinations, access emergency care, order pet care products, manage grooming services, and receive expert veterinary support — all in one place.
+        </p>
+        <div class="project-tools">
+          <span class="tool-chip">HTML, CSS</span>
+        </div>
+        <div class="project-links">
+          <a href="https://mehalapeppy.netlify.app/"
+            target="_blank" class="proj-link proj-link-primary">
+            <i class="fas fa-play-circle"></i> Live
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="wc-info">
+      <span class="wc-cat">Projects</span>
+      <h3 class="wc-title">All Projects</h3>
+      <p class="wc-desc">Crafting Meaningful Visual Experiences</p>
+    </div>
+
+    <div class="work-cta reveal">
+      <a href="https://www.behance.net/mehalaus17" target="_blank" class="btn-primary">
+        View Full Portfolio ↗
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ EDUCATION ═══ -->
+<section id="education">
+  <div class="section-wrap">
+    <div class="section-label reveal">Journey</div>
+    <div class="infinity-divider reveal">
+      <div class="inf-line"></div>
+      <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="eduInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#E9D5FF"/>
+            <stop offset="50%"  stop-color="#A855F7"/>
+            <stop offset="100%" stop-color="#4C1D95"/>
+          </linearGradient>
+        </defs>
+        <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+          fill="none" stroke="url(#eduInfGrad)" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div class="inf-line"></div>
+    </div>
+    <h2 class="section-title reveal">Education &amp; <em>Certifications</em></h2>
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-period">Jul 2025 – Jan 2026</div>
+          <div class="timeline-title">UI/UX &amp; Graphic Designing</div>
+          <div class="timeline-sub">PUMO Technovation</div>
+          <span class="timeline-badge">✦ Certified Course</span>
+        </div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-period">2021 – 2025</div>
+          <div class="timeline-title">B.E. Computer Science &amp; Engineering</div>
+          <div class="timeline-sub">University College of Engineering, Villupuram</div>
+          <span class="timeline-badge">✦ CGPA 7.8</span>
+        </div>
+      </div>
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <div class="timeline-period">2020 – 2021</div>
+          <div class="timeline-title">Higher Secondary Certificate (HSC)</div>
+          <div class="timeline-sub">Maharishi Vidya Mandir MR.HR.Sec School, Karaikudi</div>
+          <span class="timeline-badge">✦ 88%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT ═══ -->
+<section id="contact">
+  <div class="contact-wrap">
+    <div class="contact-glow"></div>
+
+    <div class="section-label reveal" style="justify-content:center">
+      Let's Connect
+    </div>
+
+    <h2 class="contact-title reveal">
+      Let's build<br><em>something great</em>
+    </h2>
+
+    <p class="contact-sub reveal">
+      I'm actively seeking internship and entry-level opportunities in UI/UX and Graphic Design.
+      Let's create something extraordinary together.
+    </p>
+
+    <a href="mailto:usmehala11@gmail.com" class="contact-email reveal">
+      <i class="fas fa-envelope"></i>
+      usmehala11@gmail.com
+    </a>
+
+    <div class="contact-socials reveal">
+      <a href="tel:+916380461064" class="c-social" title="Call">
+        <i class="fas fa-phone-alt"></i>
+      </a>
+      <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="c-social" title="LinkedIn" target="_blank">
+        <i class="fab fa-linkedin-in"></i>
+      </a>
+      <a href="https://www.behance.net/mehalaus17" class="c-social" title="Behance" target="_blank">
+        <i class="fab fa-behance"></i>
+      </a>
+      <a href="https://dribbble.com/usmehala17" class="c-social" title="Dribbble" target="_blank">
+        <i class="fab fa-dribbble"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Mehala US</div>
+  <div class="footer-infinity">
+    <span>Designing</span>
+    <svg viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="footerInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#E9D5FF"/>
+          <stop offset="50%"  stop-color="#A855F7"/>
+          <stop offset="100%" stop-color="#4C1D95"/>
+        </linearGradient>
+      </defs>
+      <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
+        fill="none" stroke="url(#footerInfGrad)" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <span>without limits</span>
+  </div>
+  <div>© 2026 Mehala US</div>
+</footer>
+
+<script src="us.js"></script>
+</body>
+</html>
