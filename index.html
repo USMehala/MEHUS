@@ -7,90 +7,816 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="us.css">
 
 <style>
-/* ── Purple Gradient Palette Override ── */
+/* ══════════════════════════════════════════
+   NEW PALETTE — from uploaded swatch image
+   ──────────────────────────────────────────
+   #EEF4FF  icy white-blue (lightest)
+   #7B52D3  medium purple
+   #1A0D6B  deep navy-indigo
+   #090520  near-black indigo
+   #3300FF  electric blue (accent)
+   ══════════════════════════════════════════ */
 :root {
-  --lavender: #E9D5FF;
-  --soft-purple: #C084FC;
-  --purple: #A855F7;
-  --violet: #7C3AED;
-  --deep-purple: #6D28D9;
-  --dark-purple: #4C1D95;
-  --midnight: #140021;
-  --black-purple: #090014;
-  --white: #ffffff;
-  --bg: #05010d;
-  --bg-2: #0b0418;
-  --surface: rgba(32, 8, 60, 0.65);
-  --surface-2: rgba(168, 85, 247, 0.08);
-  --border: rgba(192, 132, 252, 0.18);
-  --border-glow: rgba(168, 85, 247, 0.45);
-  --text: var(--lavender);
-  --text-muted: rgba(233, 213, 255, 0.6);
-  --accent: var(--violet);
-  --accent-2: var(--purple);
-  --glow: rgba(168, 85, 247, 0.35);
-  --inf-start: #E9D5FF;
-  --inf-mid: #A855F7;
-  --inf-end: #4C1D95;
+  --ice:         #EEF4FF;
+  --soft-purple: #9B7EE8;
+  --mid-purple:  #7B52D3;
+  --deep-navy:   #1A0D6B;
+  --black-indigo:#090520;
+  --electric:    #3300FF;
+  --electric-2:  #5533FF;
+
+  /* Semantic aliases */
+  --bg:          #06030F;
+  --bg-2:        #0C0630;
+  --surface:     rgba(26, 13, 107, 0.55);
+  --surface-2:   rgba(51, 0, 255, 0.08);
+  --border:      rgba(123, 82, 211, 0.22);
+  --border-glow: rgba(51, 0, 255, 0.50);
+  --text:        var(--ice);
+  --text-muted:  rgba(238, 244, 255, 0.58);
+  --accent:      var(--mid-purple);
+  --accent-2:    var(--electric);
+  --glow:        rgba(51, 0, 255, 0.40);
+
+  /* Infinity gradient stops */
+  --inf-start:   #EEF4FF;
+  --inf-mid:     #7B52D3;
+  --inf-end:     #3300FF;
+
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
+a { text-decoration: none; color: inherit; }
+
+/* ── Custom Cursor ── */
+#cursor-dot {
+  width: 8px; height: 8px;
+  background: var(--electric);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform .1s;
+  box-shadow: 0 0 12px var(--electric), 0 0 24px var(--electric);
+}
+#cursor-ring {
+  width: 32px; height: 32px;
+  border: 1.5px solid rgba(51,0,255,.5);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform .18s ease, width .25s, height .25s, border-color .25s;
+}
+body:has(a:hover) #cursor-ring,
+body:has(button:hover) #cursor-ring {
+  width: 48px; height: 48px;
+  border-color: var(--electric);
+}
+
+/* ── Loader ── */
+#loader {
+  position: fixed; inset: 0;
+  background: var(--black-indigo);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px; z-index: 9990;
+  transition: opacity .6s, visibility .6s;
+}
+#loader.hidden { opacity: 0; visibility: hidden; }
+.loader-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  letter-spacing: 5px; color: var(--ice);
+}
+.loader-bar-wrap {
+  width: 180px; height: 2px;
+  background: rgba(238,244,255,.1);
+  border-radius: 2px; overflow: hidden;
+}
+.loader-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ice), var(--mid-purple), var(--electric));
+  animation: load-bar 1.8s ease forwards;
+}
+@keyframes load-bar { from { width: 0 } to { width: 100% } }
+@keyframes draw-infinity {
+  to { stroke-dashoffset: 0 }
+}
+
+/* ── BG Canvas ── */
+#bg-canvas {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+
+/* ── Floating BG Infinity ── */
+.bg-infinity {
+  position: fixed; pointer-events: none; z-index: 0; opacity: .06;
+  animation: float-inf 10s ease-in-out infinite;
+}
+@keyframes float-inf {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-18px) rotate(3deg); }
+}
+
+/* ── Nav ── */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px;
+  background: rgba(6,3,15,.7);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  transition: padding .3s;
+}
+#navbar.scrolled { padding: 12px 48px; }
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.15rem; font-weight: 800;
+  background: linear-gradient(90deg, var(--ice), var(--mid-purple), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+}
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  font-size: .88rem; font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: .5px;
+  transition: color .25s;
+  position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 1.5px;
+  background: linear-gradient(90deg, var(--mid-purple), var(--electric));
+  transition: width .3s;
+}
+.nav-links a:hover { color: var(--ice); }
+.nav-links a:hover::after { width: 100%; }
+.nav-cta {
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric)) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 600 !important;
+}
+.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+.hamburger span {
+  width: 24px; height: 2px;
+  background: var(--ice); border-radius: 2px;
+  transition: .3s;
+}
+.mobile-nav {
+  display: none; position: fixed; top: 70px; left: 0; right: 0;
+  background: rgba(6,3,15,.97); backdrop-filter: blur(20px);
+  flex-direction: column; align-items: center; padding: 24px;
+  gap: 20px; z-index: 99;
+  border-bottom: 1px solid var(--border);
+}
+.mobile-nav.open { display: flex; }
+.mobile-nav a { font-size: 1.1rem; color: var(--text-muted); }
+.mobile-nav a:hover { color: var(--ice); }
+
+/* ── Hero ── */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 100px 48px 60px;
+  position: relative; z-index: 1;
+}
+.hero-inner {
+  max-width: 1200px; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 64px; align-items: center;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .8rem; font-weight: 500; letter-spacing: 1px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 100px; padding: 6px 16px;
+  background: var(--surface); margin-bottom: 24px;
+}
+.hero-tag span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #00FF88;
+  box-shadow: 0 0 8px #00FF88;
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.4); opacity: .6; }
+}
+.hero-name {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 800; line-height: .9;
+  margin-bottom: 12px;
+}
+.hero-name .line1 {
+  display: block;
+  background: linear-gradient(135deg, var(--ice) 0%, var(--mid-purple) 60%, var(--electric) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-name .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--electric) 0%, var(--mid-purple) 50%, var(--ice) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-role {
+  font-size: 1rem; font-weight: 300;
+  color: var(--text-muted); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 28px;
+}
+
+/* ── Infinity SVG (hero) ── */
+.infinity-wrap { margin-bottom: 24px; }
+.infinity-svg { width: 100px; height: 50px; }
+.infinity-path {
+  fill: none;
+  stroke: url(#infHeroGradNew);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px rgba(51,0,255,.7)) drop-shadow(0 0 20px rgba(123,82,211,.4));
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: draw-infinity 1.8s 1s ease forwards;
+}
+
+.hero-desc {
+  font-size: .95rem; line-height: 1.75;
+  color: var(--text-muted); max-width: 460px;
+  margin-bottom: 36px;
+}
+.hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 28px; border-radius: 100px;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  color: var(--ice); font-weight: 600; font-size: .9rem;
+  letter-spacing: .5px;
+  box-shadow: 0 0 24px rgba(51,0,255,.35);
+  transition: transform .25s, box-shadow .25s;
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--electric), var(--mid-purple));
+  opacity: 0; transition: opacity .3s;
+  border-radius: 100px;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(51,0,255,.55); }
+.btn-primary:hover::after { opacity: 1; }
+.btn-primary span { position: relative; z-index: 1; }
+.btn-ghost {
+  display: inline-flex; align-items: center;
+  padding: 13px 28px; border-radius: 100px;
+  border: 1px solid var(--border);
+  color: var(--text-muted); font-size: .9rem;
+  transition: border-color .25s, color .25s, background .25s;
+}
+.btn-ghost:hover {
+  border-color: var(--mid-purple);
+  color: var(--ice);
+  background: rgba(123,82,211,.1);
+}
+
+/* Hero card */
+.hero-visual { display: flex; justify-content: center; }
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px; padding: 40px 36px;
+  text-align: center; width: 300px;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 0 80px rgba(51,0,255,.12), inset 0 1px 0 rgba(238,244,255,.08);
+  position: relative; overflow: hidden;
+}
+.hero-card::before {
+  content: '';
+  position: absolute; top: -40%; left: -40%;
+  width: 180%; height: 180%;
+  background: radial-gradient(circle at center, rgba(51,0,255,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.avatar-ring {
+  width: 90px; height: 90px; margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  padding: 2px;
+  box-shadow: 0 0 30px rgba(51,0,255,.4);
+  animation: spin-ring 8s linear infinite;
+}
+@keyframes spin-ring {
+  to { box-shadow: 0 0 30px rgba(51,0,255,.4), 0 0 60px rgba(123,82,211,.2); }
+}
+.avatar-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: var(--bg-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.avatar-initials {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.2rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--ice), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-card-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+.hero-card-title { font-size: .78rem; color: var(--text-muted); margin-bottom: 28px; }
+.hero-stats {
+  display: flex; justify-content: space-around;
+  border-top: 1px solid var(--border); padding-top: 20px;
+}
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.6rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--ice), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.stat-label { font-size: .7rem; color: var(--text-muted); letter-spacing: 1px; margin-top: 2px; }
+
+/* Scroll indicator */
+.scroll-indicator {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: .72rem; letter-spacing: 2px; color: var(--text-muted);
+}
+.scroll-line {
+  width: 1px; height: 48px;
+  background: linear-gradient(to bottom, var(--mid-purple), transparent);
+  animation: scroll-line 1.8s ease-in-out infinite;
+}
+@keyframes scroll-line {
+  0%,100% { opacity: .3; transform: scaleY(.5); }
+  50%      { opacity: 1; transform: scaleY(1); }
+}
+
+/* ── Sections ── */
+section { padding: 100px 48px; position: relative; z-index: 1; }
+.section-wrap { max-width: 1200px; margin: 0 auto; }
+.section-label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .75rem; font-weight: 600; letter-spacing: 3px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--ice), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block; width: 24px; height: 1.5px;
+  background: linear-gradient(90deg, var(--mid-purple), var(--electric));
+}
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800; line-height: 1.15;
+  color: var(--ice); margin-bottom: 48px;
+}
+.section-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* Infinity divider */
+.infinity-divider {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
+}
+.inf-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.inf-icon {
+  width: 54px; height: 26px;
+  filter: drop-shadow(0 0 6px rgba(51,0,255,.6));
+}
+
+/* ── About ── */
+.about-left { margin-bottom: 40px; }
+.about-text {
+  font-size: .95rem; line-height: 1.8;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.about-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.social-link {
+  padding: 7px 16px; border-radius: 100px;
+  border: 1px solid var(--border);
+  font-size: .82rem; color: var(--text-muted);
+  transition: all .25s;
+}
+.social-link:hover {
+  border-color: var(--electric);
+  color: var(--ice);
+  background: rgba(51,0,255,.1);
+  box-shadow: 0 0 14px rgba(51,0,255,.2);
+}
+.about-right {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+  gap: 16px;
+}
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px;
+  transition: border-color .25s, transform .25s;
+}
+.info-card:hover {
+  border-color: var(--mid-purple);
+  transform: translateY(-4px);
+}
+.info-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, rgba(123,82,211,.25), rgba(51,0,255,.25));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: var(--electric);
+  margin-bottom: 14px;
+  border: 1px solid rgba(51,0,255,.25);
+}
+.info-card h4 { font-family: 'Syne', sans-serif; font-size: .9rem; margin-bottom: 6px; }
+.info-card p { font-size: .82rem; color: var(--text-muted); }
+
+/* ── Skills ── */
+#skills { background: var(--bg-2); }
+.skills-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+  gap: 24px;
+}
+.skill-category {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px;
+  transition: border-color .3s, transform .3s;
+}
+.skill-category:hover {
+  border-color: rgba(51,0,255,.5);
+  transform: translateY(-5px);
+}
+.skill-cat-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(123,82,211,.2), rgba(51,0,255,.2));
+  border: 1px solid rgba(51,0,255,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: var(--electric);
+  margin-bottom: 16px;
+}
+.skill-cat-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 1rem;
+  margin-bottom: 16px; color: var(--ice);
+}
+.skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.skill-tag {
+  font-size: .78rem; padding: 4px 12px;
+  border-radius: 100px; font-weight: 500;
+}
+.tag-blue {
+  background: rgba(26,13,107,.6);
+  border: 1px solid rgba(51,0,255,.3);
+  color: var(--ice);
+}
+.tag-purple {
+  background: rgba(123,82,211,.18);
+  border: 1px solid rgba(123,82,211,.4);
+  color: var(--soft-purple);
+}
+.tag-pink {
+  background: rgba(51,0,255,.12);
+  border: 1px solid rgba(51,0,255,.35);
+  color: #A899FF;
+}
+
+/* ── Projects ── */
+.project-card {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 48px; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px; padding: 48px;
+  margin-bottom: 32px;
+  transition: border-color .3s;
+}
+.project-card:hover { border-color: rgba(51,0,255,.45); }
+.project-visual { position: relative; }
+.project-glow {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(51,0,255,.25), transparent 70%);
+  pointer-events: none;
+}
+.project-mockup {
+  background: rgba(9,5,32,.8);
+  border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.mockup-bar {
+  background: rgba(26,13,107,.6);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.mockup-dots { display: flex; gap: 6px; }
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.d1 { background: #FF5F57; }
+.d2 { background: #FEBC2E; }
+.d3 { background: #28C840; }
+.mockup-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.mockup-line {
+  height: 8px; border-radius: 4px;
+  background: rgba(238,244,255,.07);
+}
+.mockup-line.accent {
+  background: linear-gradient(90deg, rgba(123,82,211,.4), rgba(51,0,255,.4));
+}
+.mockup-box {
+  height: 80px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(26,13,107,.5), rgba(51,0,255,.1));
+  border: 1px solid var(--border);
+}
+.project-num {
+  font-size: .75rem; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, var(--mid-purple), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 12px;
+}
+.project-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem; font-weight: 800;
+  color: var(--ice); margin-bottom: 16px; line-height: 1.3;
+}
+.project-desc {
+  font-size: .88rem; line-height: 1.75;
+  color: var(--text-muted); margin-bottom: 20px;
+}
+.project-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.tool-chip {
+  padding: 4px 12px; border-radius: 100px;
+  background: rgba(51,0,255,.12);
+  border: 1px solid rgba(51,0,255,.3);
+  font-size: .78rem; color: #A899FF;
+}
+.project-links { display: flex; gap: 12px; flex-wrap: wrap; }
+.proj-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 22px; border-radius: 100px;
+  font-size: .85rem; font-weight: 600; transition: all .25s;
+}
+.proj-link-primary {
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  color: var(--ice);
+  box-shadow: 0 0 20px rgba(51,0,255,.3);
+}
+.proj-link-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(51,0,255,.5); }
+.proj-link-ghost {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.proj-link-ghost:hover { border-color: var(--electric); color: var(--ice); }
+.work-cta { text-align: center; margin-top: 40px; }
+.wc-info { text-align: center; margin-top: 48px; }
+.wc-cat {
+  font-size: .75rem; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.wc-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem; font-weight: 800; color: var(--ice); margin: 6px 0 4px;
+}
+.wc-desc { font-size: .9rem; color: var(--text-muted); }
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before {
+  content: ''; position: absolute; left: 9px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--mid-purple), var(--electric), transparent);
+}
+.timeline-item {
+  position: relative; margin-bottom: 44px;
+}
+.timeline-dot {
+  position: absolute; left: -28px; top: 6px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 12px rgba(51,0,255,.5);
+}
+.timeline-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px;
+  transition: border-color .25s, transform .25s;
+}
+.timeline-content:hover {
+  border-color: rgba(51,0,255,.45);
+  transform: translateX(4px);
+}
+.timeline-period {
+  font-size: .75rem; font-weight: 600; letter-spacing: 1.5px;
+  color: var(--mid-purple); margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.timeline-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem; font-weight: 700; color: var(--ice); margin-bottom: 4px;
+}
+.timeline-sub { font-size: .83rem; color: var(--text-muted); margin-bottom: 10px; }
+.timeline-badge {
+  display: inline-block; padding: 3px 12px;
+  border-radius: 100px; font-size: .75rem;
+  background: rgba(51,0,255,.12);
+  border: 1px solid rgba(51,0,255,.3);
+  color: #A899FF;
+}
+
+/* ── Contact ── */
+#contact {
+  background: var(--bg-2);
+  text-align: center;
+}
+.contact-wrap { max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
+.contact-glow {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 500px; height: 400px;
+  background: radial-gradient(ellipse, rgba(51,0,255,.12) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.contact-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 800; color: var(--ice);
+  line-height: 1.15; margin-bottom: 20px;
+}
+.contact-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.contact-sub {
+  font-size: .95rem; line-height: 1.75;
+  color: var(--text-muted); margin-bottom: 36px;
+}
+.contact-email {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 32px; border-radius: 100px;
+  background: linear-gradient(135deg, var(--mid-purple), var(--electric));
+  color: var(--ice); font-size: 1rem; font-weight: 600;
+  box-shadow: 0 0 40px rgba(51,0,255,.35);
+  transition: transform .25s, box-shadow .25s;
+  margin-bottom: 36px;
+}
+.contact-email:hover { transform: translateY(-3px); box-shadow: 0 0 60px rgba(51,0,255,.55); }
+.contact-socials { display: flex; justify-content: center; gap: 14px; }
+.c-social {
+  width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  color: var(--text-muted); font-size: .95rem;
+  transition: all .25s;
+}
+.c-social:hover {
+  border-color: var(--electric);
+  color: var(--ice);
+  background: rgba(51,0,255,.12);
+  box-shadow: 0 0 16px rgba(51,0,255,.3);
+  transform: translateY(-3px);
+}
+
+/* ── Footer ── */
+footer {
+  padding: 32px 48px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: .82rem; color: var(--text-muted);
+  position: relative; z-index: 1;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800; font-size: .95rem;
+  background: linear-gradient(90deg, var(--ice), var(--mid-purple), var(--electric));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.footer-infinity {
+  display: flex; align-items: center; gap: 10px;
+  font-size: .8rem;
+}
+.footer-infinity svg {
+  width: 36px; height: 18px;
+  filter: drop-shadow(0 0 4px rgba(51,0,255,.5));
+}
+
+/* ── Reveal animation ── */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; text-align: center; }
+  .hero-desc { max-width: 100%; }
+  .hero-btns { justify-content: center; }
+  .hero-visual { display: none; }
+  .project-card { grid-template-columns: 1fr; }
+  .project-visual { display: none; }
+  #navbar { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  section { padding: 80px 24px; }
+  footer { justify-content: center; text-align: center; }
+}
+@media (max-width: 600px) {
+  .hero-name { font-size: 3rem; }
+  .about-right { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
 <!-- CURSOR -->
-<div id="cursor">
-  <div id="cursor-dot"></div>
-  <div id="cursor-ring"></div>
-</div>
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
 
 <!-- LOADER -->
 <div id="loader">
-  <svg style="width:100px;height:50px;filter:drop-shadow(0 0 16px rgba(168,85,247,0.8))" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
+  <svg style="width:100px;height:50px;filter:drop-shadow(0 0 16px rgba(51,0,255,0.9))" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <linearGradient id="loaderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%"   stop-color="#E9D5FF"/>
-        <stop offset="50%"  stop-color="#A855F7"/>
-        <stop offset="100%" stop-color="#4C1D95"/>
+      <linearGradient id="loaderGradNew" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%"   stop-color="#EEF4FF"/>
+        <stop offset="35%"  stop-color="#7B52D3"/>
+        <stop offset="70%"  stop-color="#1A0D6B"/>
+        <stop offset="100%" stop-color="#3300FF"/>
       </linearGradient>
     </defs>
     <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-      fill="none" stroke="url(#loaderGrad)" stroke-width="5" stroke-linecap="round"
+      fill="none" stroke="url(#loaderGradNew)" stroke-width="5" stroke-linecap="round"
       stroke-dasharray="260" stroke-dashoffset="260"
       style="animation:draw-infinity 1.6s ease forwards"/>
   </svg>
-  <div class="loader-text" style="font-size:1rem;letter-spacing:4px;margin-top:-8px">MEHALA US</div>
+  <div class="loader-text">MEHALA US</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
 </div>
 
-<!-- Hidden SVG defs for reusable infinity gradient -->
+<!-- Hidden global SVG defs -->
 <svg width="0" height="0" style="position:absolute">
   <defs>
-    <linearGradient id="infinityGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#E9D5FF"/>
-      <stop offset="50%"  stop-color="#A855F7"/>
-      <stop offset="100%" stop-color="#4C1D95"/>
+    <!-- NEW palette infinity gradient -->
+    <linearGradient id="mainInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#EEF4FF"/>
+      <stop offset="30%"  stop-color="#7B52D3"/>
+      <stop offset="65%"  stop-color="#1A0D6B"/>
+      <stop offset="100%" stop-color="#3300FF"/>
     </linearGradient>
-    <linearGradient id="infinityGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#E9D5FF" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#A855F7" stop-opacity="0.5"/>
+    <linearGradient id="mainInfGradFade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#EEF4FF" stop-opacity="0.35"/>
+      <stop offset="50%"  stop-color="#7B52D3" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3300FF" stop-opacity="0.35"/>
+    </linearGradient>
+    <!-- Hero infinity gradient -->
+    <linearGradient id="infHeroGradNew" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#EEF4FF"/>
+      <stop offset="25%"  stop-color="#9B7EE8"/>
+      <stop offset="55%"  stop-color="#7B52D3"/>
+      <stop offset="75%"  stop-color="#1A0D6B"/>
+      <stop offset="100%" stop-color="#3300FF"/>
     </linearGradient>
   </defs>
 </svg>
 
-<!-- Floating bg infinity symbols -->
+<!-- Floating BG infinity symbols -->
 <div class="bg-infinity" style="width:500px;height:250px;top:10%;left:-80px;animation-delay:0s">
   <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
     <path d="M100,50 C100,22 122,5 145,5 C168,5 190,22 190,50 C190,78 168,95 145,95 C122,95 100,78 100,50 C100,22 78,5 55,5 C32,5 10,22 10,50 C10,78 32,95 55,95 C78,95 100,78 100,50Z"
-      fill="none" stroke="url(#infinityGrad2)" stroke-width="2"/>
+      fill="none" stroke="url(#mainInfGradFade)" stroke-width="2"/>
   </svg>
 </div>
 <div class="bg-infinity" style="width:360px;height:180px;bottom:15%;right:-60px;animation-delay:-4s;animation-duration:13s">
   <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
     <path d="M100,50 C100,22 122,5 145,5 C168,5 190,22 190,50 C190,78 168,95 145,95 C122,95 100,78 100,50 C100,22 78,5 55,5 C32,5 10,22 10,50 C10,78 32,95 55,95 C78,95 100,78 100,50Z"
-      fill="none" stroke="url(#infinityGrad2)" stroke-width="2"/>
+      fill="none" stroke="url(#mainInfGradFade)" stroke-width="2"/>
   </svg>
 </div>
 
@@ -114,11 +840,11 @@
 
 <!-- Mobile Nav -->
 <div class="mobile-nav" id="mobile-nav">
-  <a href="#about" onclick="closeMobileNav()">About</a>
-  <a href="#skills" onclick="closeMobileNav()">Skills</a>
-  <a href="#projects" onclick="closeMobileNav()">Projects</a>
+  <a href="#about"     onclick="closeMobileNav()">About</a>
+  <a href="#skills"    onclick="closeMobileNav()">Skills</a>
+  <a href="#projects"  onclick="closeMobileNav()">Projects</a>
   <a href="#education" onclick="closeMobileNav()">Education</a>
-  <a href="#contact" onclick="closeMobileNav()">Contact</a>
+  <a href="#contact"   onclick="closeMobileNav()">Contact</a>
 </div>
 
 <!-- ═══ HERO ═══ -->
@@ -132,20 +858,26 @@
       </h1>
       <p class="hero-role">UI/UX Designer &amp; Graphic Designer</p>
 
-      <!-- INFINITY SYMBOL -->
+      <!-- INFINITY SYMBOL — NEW PALETTE -->
       <div class="infinity-wrap">
-        <svg class="infinity-svg" viewBox="0 0 120 60">
+        <svg class="infinity-svg" viewBox="0 0 120 60" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="infHeroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stop-color="#E9D5FF"/>
-              <stop offset="20%"  stop-color="#C084FC"/>
-              <stop offset="45%"  stop-color="#A855F7"/>
-              <stop offset="70%"  stop-color="#7C3AED"/>
-              <stop offset="100%" stop-color="#4C1D95"/>
+            <linearGradient id="infHeroGradNew2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#EEF4FF"/>
+              <stop offset="25%"  stop-color="#9B7EE8"/>
+              <stop offset="55%"  stop-color="#7B52D3"/>
+              <stop offset="75%"  stop-color="#1A0D6B"/>
+              <stop offset="100%" stop-color="#3300FF"/>
             </linearGradient>
+            <filter id="glow-inf">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
           <path
             class="infinity-path"
+            filter="url(#glow-inf)"
+            stroke="url(#infHeroGradNew2)"
             d="M30,30
                C30,10 55,10 60,30
                C65,50 90,50 90,30
@@ -200,15 +932,8 @@
     <div class="infinity-divider reveal">
       <div class="inf-line"></div>
       <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="aboutInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#E9D5FF"/>
-            <stop offset="50%"  stop-color="#A855F7"/>
-            <stop offset="100%" stop-color="#4C1D95"/>
-          </linearGradient>
-        </defs>
         <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-          fill="none" stroke="url(#aboutInfGrad)" stroke-width="4" stroke-linecap="round"/>
+          fill="none" stroke="url(#mainInfGrad)" stroke-width="4" stroke-linecap="round"/>
       </svg>
       <div class="inf-line"></div>
     </div>
@@ -220,9 +945,9 @@
       <div class="about-links">
         <a href="mailto:usmehala11@gmail.com" class="social-link">✉ Email</a>
         <a href="tel:+916380461064" class="social-link">+91 6380461064</a>
-        <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="social-link">in LinkedIn</a>
-        <a href="https://www.behance.net/mehalaus17" class="social-link">Be Behance</a>
-        <a href="https://dribbble.com/usmehala17" class="social-link">Dribbble</a>
+        <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="social-link" target="_blank">in LinkedIn</a>
+        <a href="https://www.behance.net/mehalaus17" class="social-link" target="_blank">Be Behance</a>
+        <a href="https://dribbble.com/usmehala17" class="social-link" target="_blank">Dribbble</a>
       </div>
     </div>
 
@@ -250,28 +975,16 @@
 <section id="skills">
   <div class="section-wrap">
     <div class="section-label reveal">Expertise</div>
-
     <div class="infinity-divider reveal">
       <div class="inf-line"></div>
       <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="skillsInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#E9D5FF"/>
-            <stop offset="50%"  stop-color="#A855F7"/>
-            <stop offset="100%" stop-color="#4C1D95"/>
-          </linearGradient>
-        </defs>
         <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-          fill="none" stroke="url(#skillsInfGrad)" stroke-width="4" stroke-linecap="round"/>
+          fill="none" stroke="url(#mainInfGrad)" stroke-width="4" stroke-linecap="round"/>
       </svg>
       <div class="inf-line"></div>
     </div>
-
     <h2 class="section-title reveal">Skills &amp; <em>Tools</em></h2>
-
     <div class="skills-grid">
-
-      <!-- Graphic Design -->
       <div class="skill-category reveal">
         <div class="skill-cat-icon"><i class="fas fa-pen-ruler"></i></div>
         <div class="skill-cat-title">Graphic Design</div>
@@ -283,8 +996,6 @@
           <span class="skill-tag tag-blue">Visual Design</span>
         </div>
       </div>
-
-      <!-- UI UX -->
       <div class="skill-category reveal">
         <div class="skill-cat-icon"><i class="fas fa-laptop-code"></i></div>
         <div class="skill-cat-title">UI/UX Design</div>
@@ -295,8 +1006,6 @@
           <span class="skill-tag tag-purple">Usability Testing</span>
         </div>
       </div>
-
-      <!-- Technical Skills -->
       <div class="skill-category reveal">
         <div class="skill-cat-icon"><i class="fas fa-code"></i></div>
         <div class="skill-cat-title">Technical Skills</div>
@@ -313,7 +1022,6 @@
           <span class="skill-tag tag-pink">Canva</span>
         </div>
       </div>
-
     </div>
   </div>
 </section>
@@ -321,31 +1029,19 @@
 <!-- ═══ PROJECTS ═══ -->
 <section id="projects">
   <div class="section-wrap">
-
     <div class="section-label reveal">Works</div>
-
     <div class="infinity-divider reveal">
       <div class="inf-line"></div>
       <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="projInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#E9D5FF"/>
-            <stop offset="50%"  stop-color="#A855F7"/>
-            <stop offset="100%" stop-color="#4C1D95"/>
-          </linearGradient>
-        </defs>
         <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-          fill="none" stroke="url(#projInfGrad)" stroke-width="4" stroke-linecap="round"/>
+          fill="none" stroke="url(#mainInfGrad)" stroke-width="4" stroke-linecap="round"/>
       </svg>
       <div class="inf-line"></div>
     </div>
-
     <h2 class="section-title reveal">Featured <em>Project</em></h2>
 
     <!-- PROJECT CARD 1 -->
     <div class="project-card reveal">
-
-      <!-- LEFT -->
       <div class="project-visual">
         <div class="project-glow"></div>
         <div class="project-mockup">
@@ -366,27 +1062,16 @@
           </div>
         </div>
       </div>
-
-      <!-- RIGHT -->
       <div class="project-info">
         <div class="project-num">Project 01 — Mobile App</div>
         <h3 class="project-title">Solar Panel Monitoring &amp; Management</h3>
-        <p class="project-desc">
-          A comprehensive platform to monitor, manage, and install solar solutions
-          across industrial, commercial, residential, agricultural, and transportation
-          sectors. Users can track solar power performance, order products,
-          schedule installations, manage subscriptions, and access support.
-        </p>
-        <div class="project-tools">
-          <span class="tool-chip">Figma</span>
-        </div>
+        <p class="project-desc">A comprehensive platform to monitor, manage, and install solar solutions across industrial, commercial, residential, agricultural, and transportation sectors. Users can track solar power performance, order products, schedule installations, manage subscriptions, and access support.</p>
+        <div class="project-tools"><span class="tool-chip">Figma</span></div>
         <div class="project-links">
-          <a href="https://www.figma.com/proto/cR4AXucIqRNm5vbLvdx3RG/PUMO-PROJECT?node-id=1267-886&t=MdbK4j2yeo4XNjKQ-1"
-            target="_blank" class="proj-link proj-link-primary">
+          <a href="https://www.figma.com/proto/cR4AXucIqRNm5vbLvdx3RG/PUMO-PROJECT?node-id=1267-886&t=MdbK4j2yeo4XNjKQ-1" target="_blank" class="proj-link proj-link-primary">
             <i class="fas fa-play-circle"></i> Live Prototype
           </a>
-          <a href="https://www.figma.com/proto/hOuIyD6lZaRkycCg24cqzU/CaseStudy?node-id=0-1&t=MdbK4j2yeo4XNjKQ-1"
-            target="_blank" class="proj-link proj-link-ghost">
+          <a href="https://www.figma.com/proto/hOuIyD6lZaRkycCg24cqzU/CaseStudy?node-id=0-1&t=MdbK4j2yeo4XNjKQ-1" target="_blank" class="proj-link proj-link-ghost">
             <i class="fas fa-file-alt"></i> Case Study
           </a>
         </div>
@@ -397,8 +1082,6 @@
 
     <!-- PROJECT CARD 2 -->
     <div class="project-card reveal">
-
-      <!-- LEFT -->
       <div class="project-visual">
         <div class="project-glow"></div>
         <div class="project-mockup">
@@ -419,20 +1102,13 @@
           </div>
         </div>
       </div>
-
-      <!-- RIGHT -->
       <div class="project-info">
         <div class="project-num">Project 02 — Landing Page</div>
         <h3 class="project-title">PawCare Veterinary Hospital &amp; Management</h3>
-        <p class="project-desc">
-          A trusted veterinary healthcare platform dedicated to providing complete care for pets across residential and community sectors. Pet owners can book appointments, monitor pet health records, schedule vaccinations, access emergency care, order pet care products, manage grooming services, and receive expert veterinary support — all in one place.
-        </p>
-        <div class="project-tools">
-          <span class="tool-chip">HTML, CSS</span>
-        </div>
+        <p class="project-desc">A trusted veterinary healthcare platform dedicated to providing complete care for pets across residential and community sectors. Pet owners can book appointments, monitor pet health records, schedule vaccinations, access emergency care, order pet care products, manage grooming services, and receive expert veterinary support — all in one place.</p>
+        <div class="project-tools"><span class="tool-chip">HTML, CSS</span></div>
         <div class="project-links">
-          <a href="https://mehalapeppy.netlify.app/"
-            target="_blank" class="proj-link proj-link-primary">
+          <a href="https://mehalapeppy.netlify.app/" target="_blank" class="proj-link proj-link-primary">
             <i class="fas fa-play-circle"></i> Live
           </a>
         </div>
@@ -444,13 +1120,11 @@
       <h3 class="wc-title">All Projects</h3>
       <p class="wc-desc">Crafting Meaningful Visual Experiences</p>
     </div>
-
     <div class="work-cta reveal">
       <a href="https://www.behance.net/mehalaus17" target="_blank" class="btn-primary">
-        View Full Portfolio ↗
+        <span>View Full Portfolio ↗</span>
       </a>
     </div>
-
   </div>
 </section>
 
@@ -461,15 +1135,8 @@
     <div class="infinity-divider reveal">
       <div class="inf-line"></div>
       <svg class="inf-icon" viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="eduInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#E9D5FF"/>
-            <stop offset="50%"  stop-color="#A855F7"/>
-            <stop offset="100%" stop-color="#4C1D95"/>
-          </linearGradient>
-        </defs>
         <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-          fill="none" stroke="url(#eduInfGrad)" stroke-width="4" stroke-linecap="round"/>
+          fill="none" stroke="url(#mainInfGrad)" stroke-width="4" stroke-linecap="round"/>
       </svg>
       <div class="inf-line"></div>
     </div>
@@ -510,38 +1177,18 @@
 <section id="contact">
   <div class="contact-wrap">
     <div class="contact-glow"></div>
-
-    <div class="section-label reveal" style="justify-content:center">
-      Let's Connect
-    </div>
-
-    <h2 class="contact-title reveal">
-      Let's build<br><em>something great</em>
-    </h2>
-
-    <p class="contact-sub reveal">
-      I'm actively seeking internship and entry-level opportunities in UI/UX and Graphic Design.
-      Let's create something extraordinary together.
-    </p>
-
+    <div class="section-label reveal" style="justify-content:center">Let's Connect</div>
+    <h2 class="contact-title reveal">Let's build<br><em>something great</em></h2>
+    <p class="contact-sub reveal">I'm actively seeking internship and entry-level opportunities in UI/UX and Graphic Design. Let's create something extraordinary together.</p>
     <a href="mailto:usmehala11@gmail.com" class="contact-email reveal">
       <i class="fas fa-envelope"></i>
       usmehala11@gmail.com
     </a>
-
     <div class="contact-socials reveal">
-      <a href="tel:+916380461064" class="c-social" title="Call">
-        <i class="fas fa-phone-alt"></i>
-      </a>
-      <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="c-social" title="LinkedIn" target="_blank">
-        <i class="fab fa-linkedin-in"></i>
-      </a>
-      <a href="https://www.behance.net/mehalaus17" class="c-social" title="Behance" target="_blank">
-        <i class="fab fa-behance"></i>
-      </a>
-      <a href="https://dribbble.com/usmehala17" class="c-social" title="Dribbble" target="_blank">
-        <i class="fab fa-dribbble"></i>
-      </a>
+      <a href="tel:+916380461064" class="c-social" title="Call"><i class="fas fa-phone-alt"></i></a>
+      <a href="https://www.linkedin.com/in/mehala-us-ba2267280/" class="c-social" title="LinkedIn" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+      <a href="https://www.behance.net/mehalaus17" class="c-social" title="Behance" target="_blank"><i class="fab fa-behance"></i></a>
+      <a href="https://dribbble.com/usmehala17" class="c-social" title="Dribbble" target="_blank"><i class="fab fa-dribbble"></i></a>
     </div>
   </div>
 </section>
@@ -552,21 +1199,100 @@
   <div class="footer-infinity">
     <span>Designing</span>
     <svg viewBox="0 0 120 58" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="footerInfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%"   stop-color="#E9D5FF"/>
-          <stop offset="50%"  stop-color="#A855F7"/>
-          <stop offset="100%" stop-color="#4C1D95"/>
-        </linearGradient>
-      </defs>
       <path d="M60,29 C60,14 72,4 84,4 C96,4 116,14 116,29 C116,44 96,54 84,54 C72,54 60,44 60,29 C60,14 48,4 36,4 C24,4 4,14 4,29 C4,44 24,54 36,54 C48,54 60,44 60,29Z"
-        fill="none" stroke="url(#footerInfGrad)" stroke-width="5" stroke-linecap="round"/>
+        fill="none" stroke="url(#mainInfGrad)" stroke-width="5" stroke-linecap="round"/>
     </svg>
     <span>without limits</span>
   </div>
   <div>© 2026 Mehala US</div>
 </footer>
 
-<script src="us.js"></script>
+<script>
+/* ── Cursor ── */
+const dot  = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+document.addEventListener('mousemove', e => {
+  dot.style.left  = e.clientX + 'px';
+  dot.style.top   = e.clientY + 'px';
+  ring.style.left = e.clientX + 'px';
+  ring.style.top  = e.clientY + 'px';
+});
+
+/* ── Loader ── */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 1900);
+});
+
+/* ── Navbar scroll ── */
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+/* ── Hamburger ── */
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-nav').classList.toggle('open');
+});
+function closeMobileNav() {
+  document.getElementById('mobile-nav').classList.remove('open');
+}
+
+/* ── Reveal on scroll ── */
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => io.observe(el));
+
+/* ── BG Canvas — particle field in new palette ── */
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#EEF4FF','#9B7EE8','#7B52D3','#1A0D6B','#3300FF'];
+for (let i = 0; i < 70; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    r: Math.random() * 1.8 + .4,
+    c: COLORS[Math.floor(Math.random() * COLORS.length)],
+    vx: (Math.random() - .5) * .3,
+    vy: (Math.random() - .5) * .3,
+    o: Math.random() * .5 + .15
+  });
+}
+
+function drawBG() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.c;
+    ctx.globalAlpha = p.o;
+    ctx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawBG);
+}
+drawBG();
+</script>
 </body>
 </html>
